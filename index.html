@@ -1,0 +1,1235 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Estudio del tópico:Stochastic✦</title>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Nunito:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --red:    #FF4D6D;
+  --rose:   #FF8FA3;
+  --yellow: #FFD166;
+  --black:  #1A1A2E;
+  --navy:   #16213E;
+  --purple: #0F3460;
+  --cream:  #FFF1E6;
+  --muted:  #9B8EA0;
+  --white:  #FFFFFF;
+  --card:   rgba(255,255,255,0.06);
+  --border: rgba(255,255,255,0.1);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--black);
+  color: var(--cream);
+  font-family: 'Nunito', sans-serif;
+  font-weight: 400;
+  overflow-x: hidden;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top:0; left:0; width:100%; z-index:999;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 16px 48px;
+  background: rgba(26,26,46,0.9);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid rgba(255,77,109,0.2);
+}
+.nav-logo { font-family:'Playfair Display',serif; font-size:1rem; color:var(--yellow); letter-spacing:0.04em; }
+.nav-links { display:flex; gap:24px; }
+.nav-links a { color:var(--muted); text-decoration:none; font-size:0.78rem; letter-spacing:0.1em; transition:color .2s; }
+.nav-links a:hover { color:var(--rose); }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display:flex; flex-direction:column; justify-content:center;
+  padding: 120px 10vw 80px;
+  position:relative; overflow:hidden;
+  background: radial-gradient(ellipse at 70% 40%, rgba(255,77,109,0.12) 0%, transparent 60%),
+              radial-gradient(ellipse at 20% 80%, rgba(255,209,102,0.08) 0%, transparent 50%),
+              var(--black);
+}
+#hero-canvas { position:absolute; inset:0; z-index:0; }
+.hero-content { position:relative; z-index:1; max-width:800px; }
+.hero-tag {
+  display:inline-flex; align-items:center; gap:8px;
+  background: rgba(255,77,109,0.15); border:1px solid rgba(255,77,109,0.35);
+  color:var(--rose); font-size:0.78rem; letter-spacing:0.12em;
+  padding:6px 16px; border-radius:30px; margin-bottom:28px;
+}
+h1 {
+  font-family:'Playfair Display',serif;
+  font-size: clamp(3rem,6.5vw,6rem);
+  line-height:1.08; color:var(--white);
+  margin-bottom:28px;
+}
+h1 em { color:var(--yellow); font-style:italic; }
+h1 .accent { color:var(--rose); }
+.hero-sub {
+  font-size:1.1rem; color:rgba(255,241,230,0.7);
+  line-height:1.75; max-width:600px; margin-bottom:44px;
+  font-weight:300;
+}
+.kw-pills { display:flex; flex-wrap:wrap; gap:10px; margin-bottom:52px; }
+.kw-pill {
+  background: rgba(255,143,163,0.12);
+  border:1px solid rgba(255,143,163,0.3);
+  color:var(--rose); font-size:0.75rem; letter-spacing:0.08em;
+  padding:7px 16px; border-radius:30px;
+  transition: background .2s, transform .15s;
+  cursor:default;
+}
+.kw-pill:hover { background:rgba(255,143,163,0.22); transform:translateY(-2px); }
+.hero-stats { display:flex; gap:52px; flex-wrap:wrap; }
+.stat { display:flex; flex-direction:column; }
+.stat-num { font-family:'Playfair Display',serif; font-size:3.2rem; color:var(--yellow); line-height:1; }
+.stat-label { font-size:0.72rem; color:var(--muted); letter-spacing:0.12em; text-transform:uppercase; margin-top:6px; }
+.scroll-hint {
+  position:absolute; bottom:40px; left:50%; transform:translateX(-50%);
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+  color:var(--muted); font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase;
+  animation: bounce 2s infinite;
+}
+@keyframes bounce { 0%,100%{transform:translateX(-50%) translateY(0)} 50%{transform:translateX(-50%) translateY(8px)} }
+
+/* ── SECTIONS ── */
+section { padding: 100px 10vw; border-top: 1px solid rgba(255,255,255,0.05); }
+
+.section-eyebrow {
+  display:inline-flex; align-items:center; gap:8px;
+  font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--rose); margin-bottom:14px;
+}
+.section-eyebrow::before { content:''; width:24px; height:2px; background:var(--rose); display:block; }
+
+h2 {
+  font-family:'Playfair Display',serif;
+  font-size: clamp(2rem,3.5vw,3rem);
+  color:var(--white); margin-bottom:16px; line-height:1.2;
+}
+h2 .hl { color:var(--yellow); }
+.section-desc { font-size:0.95rem; color:rgba(255,241,230,0.6); max-width:640px; margin-bottom:48px; line-height:1.7; }
+
+/* ── BACKGROUNDS ── */
+.bg-navy { background: var(--navy); }
+.bg-purple { background: var(--purple); }
+.bg-black { background: var(--black); }
+.bg-gradient { background: linear-gradient(135deg, var(--navy) 0%, var(--black) 100%); }
+
+/* ── PUBLICACIONES ── */
+.pub-search-wrap { display:flex; gap:12px; margin-bottom:28px; flex-wrap:wrap; align-items:center; }
+.pub-search {
+  flex:1; min-width:220px;
+  background:rgba(255,255,255,0.07); border:1px solid var(--border);
+  color:var(--cream); font-family:'Nunito',sans-serif; font-size:0.88rem;
+  padding:11px 18px; border-radius:30px; outline:none;
+  transition: border-color .2s;
+}
+.pub-search:focus { border-color:var(--rose); }
+.pub-search::placeholder { color:var(--muted); }
+.pub-count { font-size:0.82rem; color:var(--muted); white-space:nowrap; }
+.filter-btns { display:flex; gap:8px; flex-wrap:wrap; }
+.filter-btn {
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  color:var(--muted); font-family:'Nunito',sans-serif; font-size:0.72rem;
+  letter-spacing:0.1em; padding:7px 14px; border-radius:30px; cursor:pointer;
+  transition: all .2s;
+}
+.filter-btn:hover, .filter-btn.active { background:var(--red); border-color:var(--red); color:#fff; }
+
+.pub-list { display:flex; flex-direction:column; gap:0; }
+.pub-card {
+  background: transparent;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+  padding: 20px 0;
+  cursor:pointer; position:relative;
+  transition: padding .2s;
+}
+.pub-card:hover { padding-left:12px; }
+.pub-card::before {
+  content:''; position:absolute; left:0; top:0; height:100%; width:3px;
+  background:var(--red); transform:scaleY(0); transform-origin:top;
+  transition: transform .2s;
+}
+.pub-card:hover::before { transform:scaleY(1); }
+
+.pub-main { display:flex; gap:16px; align-items:flex-start; }
+.pub-citas-bubble {
+  min-width:48px; height:48px; border-radius:50%;
+  background: rgba(255,77,109,0.15); border:1px solid rgba(255,77,109,0.3);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.pub-citas-num { font-family:'Playfair Display',serif; font-size:1rem; color:var(--rose); line-height:1; }
+.pub-citas-lbl { font-size:0.5rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em; }
+.pub-body { flex:1; }
+.pub-title {
+  font-size:0.95rem; color:var(--white); margin-bottom:10px; line-height:1.5;
+  font-weight:500;
+}
+.pub-meta { display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:8px; }
+.pub-badge {
+  font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase;
+  padding:3px 10px; border-radius:20px; font-weight:600;
+}
+.q1 { background:rgba(255,77,109,0.2); color:#ff99aa; border:1px solid rgba(255,77,109,0.3); }
+.q2 { background:rgba(255,209,102,0.2); color:var(--yellow); border:1px solid rgba(255,209,102,0.3); }
+.q3 { background:rgba(255,143,163,0.15); color:var(--rose); border:1px solid rgba(255,143,163,0.2); }
+.q4 { background:rgba(155,142,160,0.15); color:#aaa; border:1px solid rgba(155,142,160,0.2); }
+.qna { background:rgba(155,142,160,0.1); color:#888; border:1px solid rgba(155,142,160,0.15); }
+.pub-year-lbl { font-size:0.78rem; color:var(--muted); }
+.pub-doi-link { font-size:0.75rem; color:var(--rose); text-decoration:none; }
+.pub-doi-link:hover { text-decoration:underline; }
+.pub-first-badge { font-size:0.65rem; color:#88DDAA; background:rgba(100,220,160,0.12); border:1px solid rgba(100,220,160,0.25); padding:3px 10px; border-radius:20px; }
+
+/* Becario expand */
+.pub-becario-expand {
+  max-height:0; overflow:hidden; transition:max-height .35s ease;
+  padding:0 0 0 64px;
+}
+.pub-card.open .pub-becario-expand { max-height:200px; }
+.becario-chip {
+  display:inline-flex; align-items:center; gap:10px;
+  background:rgba(255,209,102,0.08); border:1px solid rgba(255,209,102,0.2);
+  border-radius:8px; padding:12px 16px; margin-top:12px; flex-wrap:wrap; gap:14px;
+}
+.bc-name { font-size:0.85rem; color:var(--yellow); font-weight:600; }
+.bc-tag { font-size:0.72rem; color:var(--muted); background:rgba(255,255,255,0.05); padding:3px 10px; border-radius:20px; }
+
+/* ── INTERSECCIONAL ── */
+#intersec-svg { width:100%; }
+
+/* ── TIMELINE ── */
+#timeline-svg { width:100%; }
+
+/* ── FIELDS ── */
+#fields-svg { width:100%; }
+
+/* ── CUARTILES ── */
+#cuartiles-svg { width:100%; }
+
+/* ── BECARIOS CHART ── */
+#becarios-svg { width:100%; }
+
+/* ── JOURNALS ── */
+.journal-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:14px; }
+.journal-card {
+  background:var(--card); border:1px solid var(--border);
+  padding:18px 20px; border-radius:12px;
+  transition: transform .15s, border-color .2s;
+}
+.journal-card:hover { transform:translateY(-4px); border-color:rgba(255,143,163,0.35); }
+.jname { font-size:0.85rem; color:var(--white); margin-bottom:6px; line-height:1.4; font-weight:600; }
+.jpub { font-size:0.72rem; color:var(--muted); margin-bottom:10px; }
+.jmeta { display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ── INSTITUCIONES ── */
+.inst-list { display:flex; flex-direction:column; gap:10px; }
+.inst-row {
+  display:flex; align-items:center; gap:16px;
+  padding:14px 20px; border-radius:12px;
+  background:var(--card); border:1px solid var(--border);
+  transition: border-color .2s;
+}
+.inst-row:hover { border-color:rgba(255,209,102,0.3); }
+.inst-num { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--red); min-width:36px; text-align:center; opacity:0.7; }
+.inst-name { font-size:0.88rem; color:var(--white); flex:1; font-weight:500; }
+.inst-country { font-size:0.72rem; color:var(--muted); }
+.inst-bar-wrap { width:100px; background:rgba(255,255,255,0.07); border-radius:4px; height:6px; }
+.inst-bar { height:6px; border-radius:4px; background:linear-gradient(90deg,var(--red),var(--rose)); }
+.inst-n { min-width:36px; text-align:right; font-size:0.88rem; color:var(--yellow); font-weight:600; }
+
+/* ── COMENTARIOS ── */
+#comentarios { background: linear-gradient(160deg, var(--purple) 0%, var(--black) 100%); }
+.comment-outer { display:grid; grid-template-columns:1fr 1fr; gap:60px; align-items:start; }
+@media(max-width:768px){ .comment-outer{grid-template-columns:1fr;} }
+.comment-intro { }
+.comment-intro-title { font-family:'Playfair Display',serif; font-size:1.6rem; color:var(--white); margin-bottom:16px; }
+.comment-intro-text { font-size:0.92rem; color:rgba(255,241,230,0.6); line-height:1.75; margin-bottom:24px; }
+.comment-decor { font-size:4rem; opacity:0.15; line-height:1; margin-bottom:20px; }
+.comment-box {
+  background:rgba(255,255,255,0.04);
+  border:1px solid rgba(255,143,163,0.25);
+  border-radius:16px; padding:36px;
+}
+.comment-box label { font-size:0.75rem; color:var(--rose); letter-spacing:0.1em; text-transform:uppercase; display:block; margin-bottom:8px; }
+.comment-box input {
+  width:100%; background:rgba(0,0,0,0.3);
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--cream); font-family:'Nunito',sans-serif;
+  font-size:0.9rem; padding:12px 16px; border-radius:8px;
+  outline:none; margin-bottom:18px;
+  transition: border-color .2s;
+}
+.comment-box input:focus { border-color:var(--rose); }
+.comment-box textarea {
+  width:100%; background:rgba(0,0,0,0.3);
+  border:1px solid rgba(255,255,255,0.1);
+  color:var(--cream); font-family:'Nunito',sans-serif;
+  font-size:0.9rem; padding:14px 16px; border-radius:8px;
+  resize:vertical; min-height:130px; outline:none;
+  margin-bottom:8px;
+  transition: border-color .2s;
+}
+.comment-box textarea:focus { border-color:var(--rose); }
+.comment-placeholder-hint {
+  font-size:0.75rem; color:var(--muted); font-style:italic;
+  margin-bottom:18px; line-height:1.5; padding:0 2px;
+}
+.btn-send {
+  display:inline-flex; align-items:center; gap:10px;
+  background:linear-gradient(135deg,var(--red),var(--rose));
+  color:#fff; border:none; cursor:pointer;
+  font-family:'Nunito',sans-serif; font-size:0.82rem;
+  letter-spacing:0.1em; text-transform:uppercase; font-weight:700;
+  padding:13px 30px; border-radius:30px;
+  transition: transform .15s, box-shadow .2s;
+  box-shadow: 0 4px 20px rgba(255,77,109,0.3);
+}
+.btn-send:hover { transform:translateY(-2px); box-shadow:0 6px 28px rgba(255,77,109,0.45); }
+#send-status { font-size:0.82rem; margin-top:14px; min-height:20px; }
+
+/* ── FOOTER ── */
+footer {
+  padding:36px 10vw;
+  border-top:1px solid rgba(255,255,255,0.05);
+  display:flex; justify-content:space-between; align-items:center;
+  flex-wrap:wrap; gap:20px;
+  background: var(--black);
+}
+.footer-text { font-size:0.72rem; color:var(--muted); }
+.footer-logo { font-family:'Playfair Display',serif; color:var(--yellow); font-size:0.95rem; }
+.footer-heart { color:var(--rose); }
+
+/* ── SCROLL FADE ── */
+.fade-in { opacity:0; transform:translateY(28px); transition: opacity .65s ease, transform .65s ease; }
+.fade-in.visible { opacity:1; transform:none; }
+
+/* ── TOOLTIP ── */
+.tooltip-d3 {
+  position:fixed; background:rgba(26,26,46,0.97);
+  border:1px solid var(--rose); padding:12px 16px;
+  border-radius:10px; font-size:0.8rem; color:var(--cream);
+  pointer-events:none; opacity:0; z-index:9999;
+  line-height:1.6; max-width:260px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+/* scrollbar */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:var(--black); }
+::-webkit-scrollbar-thumb { background:var(--red); border-radius:3px; }
+
+/* hidden pub cards */
+.pub-card.hidden { display:none; }
+
+/* ── PAGINACIÓN PUBLICACIONES ── */
+.pub-pagination {
+  display:flex; align-items:center; justify-content:center;
+  gap:14px; margin-top:28px;
+}
+.pub-pagination button {
+  background:rgba(255,255,255,0.06); border:1px solid var(--border);
+  color:var(--muted); font-family:'Nunito',sans-serif;
+  font-size:0.78rem; letter-spacing:0.08em;
+  padding:9px 22px; border-radius:30px; cursor:pointer;
+  transition: all .2s;
+}
+.pub-pagination button:hover:not([disabled]) {
+  background:var(--red); border-color:var(--red); color:#fff;
+}
+.pub-pagination button[disabled] { opacity:0.3; cursor:default; }
+.pub-pagination .pag-info {
+  font-size:0.82rem; color:var(--muted); min-width:120px; text-align:center;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">✦ Stochastic &amp; Topic</div>
+  <div class="nav-links">
+    <a href="#publicaciones">Publicaciones</a>
+    <a href="#interseccional">Brecha</a>
+    <a href="#becarios">Becarios</a>
+    <a href="#journals">Journals</a>
+    <a href="#instituciones">Instituciones</a>
+    <a href="#comentarios">Mensaje</a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-content">
+    <span class="hero-tag">✦ Tópico Stochastic · Muestra: Becarios ANID 2014–2016</span>
+    <h1>Para Francisca: en su camino de estudiar el arte de<br/><em>predecir</em><br/>lo <span class="accent">incierto</span></h1>
+    <p class="hero-sub">
+      Un pequeño dashboard con información sobre publicaciones, investigadores/as, journals e instituciones relacionadas con el tópico de estocástica y procesos gaussianos.
+      Para que puedas informarte con mas detalle de como se estudia el tópico y en una de esas, encontrar una guía para tus intereses investigativos!
+    </p>
+    <div class="kw-pills">
+      <span class="kw-pill">stochastic</span><span class="kw-pill">series de tiempo</span>
+      <span class="kw-pill">gaussian process</span><span class="kw-pill">bayesian</span>
+      <span class="kw-pill">predicción</span><span class="kw-pill">estimación</span>
+      <span class="kw-pill">modelos</span><span class="kw-pill">parámetros</span>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><span class="stat-num">109</span><span class="stat-label">Publicaciones</span></div>
+      <div class="stat"><span class="stat-num">54</span><span class="stat-label">Investigadores/as</span></div>
+      <div class="stat"><span class="stat-num">74</span><span class="stat-label">Journals</span></div>
+      <div class="stat"><span class="stat-num">16</span><span class="stat-label">Años de producción</span></div>
+    </div>
+  </div>
+  <div class="scroll-hint">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    Explorar
+  </div>
+</section>
+
+<!-- PUBLICACIONES -->
+<section id="publicaciones" class="bg-navy">
+  <div class="fade-in">
+    <div class="section-eyebrow">Todas las publicaciones</div>
+    <h2>Lo que han <span class="hl">publicado</span></h2>
+    <p class="section-desc">
+      Haz clic en cualquier publicación para ver quién la escribió y su perfil como investigador/a. 
+      Filtra por cuartil o busca por título.
+    </p>
+    <div class="pub-search-wrap">
+      <input class="pub-search" id="pub-search" placeholder="🔍 Buscar por título, journal o autor/a…" oninput="filterPubs()"/>
+      <div class="filter-btns" id="filter-btns">
+        <button class="filter-btn active" onclick="setFilter('all',this)">Todas</button>
+        <button class="filter-btn" onclick="setFilter('Q1',this)">Q1</button>
+        <button class="filter-btn" onclick="setFilter('Q2',this)">Q2</button>
+        <button class="filter-btn" onclick="setFilter('Q3',this)">Q3</button>
+        <button class="filter-btn" onclick="setFilter('Q4',this)">Q4</button>
+        <button class="filter-btn" onclick="setFilter('first',this)">✦ Primer/a autor/a</button>
+      </div>
+      <div class="pub-count" id="pub-count"></div>
+    </div>
+    <div class="pub-list" id="pub-list"></div>
+    <div class="pub-pagination" id="pub-pagination"></div>
+  </div>
+</section>
+
+<!-- TIMELINE -->
+<section id="timeline" class="bg-black">
+  <div class="fade-in">
+    <div class="section-eyebrow">Dinámica temporal</div>
+    <h2>¿Cuándo <span class="hl">publican</span>?</h2>
+    <p class="section-desc">La beca actúa como catalizador. La producción científica crece notablemente después del período de financiamiento.</p>
+    <svg id="timeline-svg" height="240"></svg>
+  </div>
+</section>
+
+<!-- INTERSECCIONAL -->
+<section id="interseccional" class="bg-navy">
+  <div class="fade-in">
+    <div class="section-eyebrow">Interseccionalidad</div>
+    <h2>Género y <span class="hl">clase social</span></h2>
+    <p class="section-desc">
+      ¿El origen socioeconómico importa? Aquí se ve cómo se distribuyen los/as investigadores/as 
+      por clase social y género. El tamaño de cada burbuja = número de personas.
+    </p>
+    <svg id="intersec-svg" height="360"></svg>
+  </div>
+</section>
+
+<!-- CUARTILES -->
+<section id="cuartiles" class="bg-black">
+  <div class="fade-in">
+    <div class="section-eyebrow">Calidad editorial</div>
+    <h2>¿Dónde <span class="hl">publican</span>?</h2>
+    <p class="section-desc">Distribución por cuartil SJR y género. Q1 es el nivel más alto de impacto en la comunidad científica.</p>
+    <svg id="cuartiles-svg" height="300"></svg>
+  </div>
+</section>
+
+<!-- FIELDS -->
+<section id="fields" class="bg-navy">
+  <div class="fade-in">
+    <div class="section-eyebrow">Campos disciplinares</div>
+    <h2>¿En qué <span class="hl">áreas</span>?</h2>
+    <p class="section-desc">Clasificación ASJC de Scopus. Matemáticas, Ciencias de la Computación e Ingeniería lideran este tópico.</p>
+    <svg id="fields-svg" height="400"></svg>
+  </div>
+</section>
+
+<!-- BECARIOS -->
+<section id="becarios" class="bg-black">
+  <div class="fade-in">
+    <div class="section-eyebrow">Protagonistas</div>
+    <h2>Quienes <span class="hl">investigan</span></h2>
+    <p class="section-desc">Top 20 investigadores/as por publicaciones en este tópico. 
+    <span style="color:var(--red)">●</span> Hombre &nbsp; <span style="color:var(--rose)">●</span> Mujer</p>
+    <svg id="becarios-svg" height="540"></svg>
+  </div>
+</section>
+
+<!-- JOURNALS -->
+<section id="journals" class="bg-navy">
+  <div class="fade-in">
+    <div class="section-eyebrow">Dónde se publica</div>
+    <h2>Journals y <span class="hl">publishers</span></h2>
+    <div class="journal-grid" id="journal-grid"></div>
+  </div>
+</section>
+
+<!-- INSTITUCIONES -->
+<section id="instituciones" class="bg-black">
+  <div class="fade-in">
+    <div class="section-eyebrow">Formación doctoral</div>
+    <h2>Universidades de <span class="hl">posgrado</span></h2>
+    <p class="section-desc">¿Dónde hicieron el doctorado? La mayoría se formó en Chile, con presencia de universidades del top mundial.</p>
+    <div class="inst-list" id="inst-list"></div>
+  </div>
+</section>
+
+<!-- COMENTARIOS -->
+<section id="comentarios">
+  <div class="fade-in">
+    <div class="comment-outer">
+      <div class="comment-intro">
+        <div class="comment-decor">💌</div>
+        <div class="comment-intro-title">Hablemos!</div>
+        <p class="comment-intro-text">
+          Este dashboard es un pequeño regalo para que puedas explorar el mundo de la estocástica
+          <br/><br/>
+          Si algo te llamó la atención, si tienes una pregunta, o si quieres explorar más deatlles o cualquier palabra. Puedes enviarme un mensaje directamente desde aquí.
+        </p>
+        <div style="font-size:0.82rem;color:var(--muted);line-height:1.7;">
+          <br/>
+          
+        </div>
+      </div>
+      <div class="comment-box">
+        <label>Tu nombre</label>
+        <input type="text" id="input-nombre" placeholder="Nombre"/>
+        <label>Tu mensaje</label>
+        <textarea id="input-comentario" placeholder="Escribe lo que quieras aquí…"></textarea>
+        <div class="comment-placeholder-hint">
+          
+        </div>
+        <button class="btn-send" onclick="enviarComentario()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          Enviar 
+        </button>
+        <div id="send-status"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">✦ Stochastic Topic</div>
+  <div class="footer-text">Hecho con <span class="footer-heart">♥</span> para Francisca Monetta</div>
+</footer>
+
+<div class="tooltip-d3" id="tooltip"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const PUBLICATIONS = [
+  {title:"Machine Learning With Data Assimilation and Uncertainty Quantification for Dynamical Systems: A Review",year:2023,citas:155,cuartil:"Q1",journal:"IEEE/CAA Journal of Automatica Sinica",doi:"10.1109/JAS.2023.123537",primer_autor:false,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Reliability-based optimization of stochastic systems using line search",year:2009,citas:110,cuartil:"Q1",journal:"Computer Methods in Applied Mechanics and Engineering",doi:"10.1016/j.cma.2009.08.016",primer_autor:false,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"Model-reduction techniques for Bayesian finite element model updating using dynamic response data",year:2014,citas:83,cuartil:"Q1",journal:"Computer Methods in Applied Mechanics and Engineering",doi:"10.1016/j.cma.2014.06.032",primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Prediction interval methodology based on fuzzy numbers and its extension to fuzzy systems and neural networks",year:2019,citas:73,cuartil:"Q1",journal:"Expert Systems with Applications",doi:"10.1016/j.eswa.2018.10.043",primer_autor:true,autor:"FELIPE IGNACIO ELORRIETA LOPEZ"},
+  {title:"Parameter estimation of Lorenz chaotic system using a hybrid swarm intelligence algorithm",year:2016,citas:71,cuartil:"Q2",journal:"Physics Letters, Section A: General, Atomic and Solid State Physics",doi:"10.1016/j.physleta.2016.01.040",primer_autor:false,autor:"LUIS GABRIEL MARIN COLLAZOS"},
+  {title:"Fast nonlinear susceptibility inversion with variational regularization",year:2018,citas:69,cuartil:"Q1",journal:"Magnetic Resonance in Medicine",doi:"10.1002/mrm.27073",primer_autor:true,autor:"PEDRO ANTONIO PEREZ AROS"},
+  {title:"Parameter Flexible Wildfire Prediction Using Machine Learning Techniques: Forward and Inverse Modelling",year:2022,citas:47,cuartil:"Q1",journal:"Remote Sensing",doi:"10.3390/rs14133228",primer_autor:false,autor:"MARCO ANTONIO RIVERA TAPIA"},
+  {title:"Statistical analysis of autoregressive fractionally integrated moving average models in R",year:2013,citas:45,cuartil:"Q2",journal:"Computational Statistics",doi:"10.1007/s00180-013-0408-7",primer_autor:true,autor:"ARAMIS PEREZ MORA"},
+  {title:"Asymmetric heavy-tailed vector auto-regressive processes with application to financial data",year:2020,citas:42,cuartil:"Q2",journal:"Journal of Statistical Computation and Simulation",doi:"10.1080/00949655.2019.1680675",primer_autor:false,autor:"GONZALO ANDRES RIOS DIAZ"},
+  {title:"Review on Fuzzy and Neural Prediction Interval Modelling for Nonlinear Dynamical Systems",year:2021,citas:36,cuartil:"Q1",journal:"IEEE Access",doi:"10.1109/ACCESS.2021.3056003",primer_autor:false,autor:"CESAR ANDRES QUILODRAN CASAS"},
+  {title:"Compositionally-warped Gaussian processes",year:2019,citas:32,cuartil:"Q1",journal:"Neural Networks",doi:"10.1016/j.neunet.2019.06.012",primer_autor:true,autor:"JONATHAN DANIEL ACOSTA SALAZAR"},
+  {title:"Spatial-temporal multivariate semi-Bayesian hierarchical framework for extreme precipitation frequency analysis",year:2021,citas:31,cuartil:"Q1",journal:"Journal of Hydrology",doi:"10.1016/j.jhydrol.2021.126499",primer_autor:true,autor:"MATIAS TORO IPINZA"},
+  {title:"The Extended Gompertz Model: Applications, Mean of Order P Assessment and Statistical Threshold Risk Analysis Based on Extreme Stresses Data",year:2025,citas:31,cuartil:"-",journal:null,doi:"10.1109/TR.2024.3425278",primer_autor:false,autor:"FREDDY OMAR LOPEZ QUINTERO"},
+  {title:"Scenario reduction for stochastic programs with Conditional Value-at-Risk",year:2018,citas:30,cuartil:"Q1",journal:"Mathematical Programming",doi:"10.1007/s10107-018-1298-9",primer_autor:true,autor:"CHRISTIAN ELOY CAAMA\u00c3\u0091O CARRILLO"},
+  {title:"Mackey-Glass noisy chaotic time series prediction by a swarm-optimized neural network",year:2016,citas:27,cuartil:"-",journal:"Journal of Physics: Conference Series",doi:"10.1088/1742-6596/720/1/012002",primer_autor:false,autor:"ALEJANDRO IGNACIO MAASS MARTINEZ"},
+  {title:"Backcasting and forecasting time series using detrended cross-correlation analysis",year:2020,citas:27,cuartil:"Q2",journal:"Physica A: Statistical Mechanics and its Applications",doi:"10.1016/j.physa.2020.125109",primer_autor:true,autor:"RICARDO RODRIGO PEREZ IBACACHE"},
+  {title:"Reliability-based design optimization of uncertain stochastic systems: Gradient-based scheme",year:2011,citas:24,cuartil:"-",journal:null,doi:"10.1061/(ASCE)EM.1943-7889.0000304",primer_autor:false,autor:"FELIPE IGNACIO INOSTROZA FERRARI"},
+  {title:"Batch scheduling with quality-based changeovers",year:2020,citas:21,cuartil:"Q1",journal:"Computers and Chemical Engineering",doi:"10.1016/j.compchemeng.2019.106617",primer_autor:true,autor:"FRANCISCO HAWAS"},
+  {title:"Predicting the Long-Term Dependencies in Time Series Using Recurrent Artificial Neural Networks",year:2023,citas:21,cuartil:"Q1",journal:"Machine Learning and Knowledge Extraction",doi:"10.3390/make5040068",primer_autor:false,autor:"RICARDO ALONSO LUNA HERNANDEZ"},
+  {title:"Customizable gradual polymorphic effects for scala",year:2015,citas:17,cuartil:"-",journal:"Proceedings of the Conference on Object-Oriented Programming Systems, Languages, and Applications, OOPSLA",doi:"10.1145/2814270.2814315",primer_autor:true,autor:"GERMAN VOGEL"},
+  {title:"Meteorological Variables Forecasting System Using Machine Learning and Open-Source Software",year:2023,citas:17,cuartil:"Q2",journal:"Electronics (Switzerland)",doi:"10.3390/electronics12041007",primer_autor:false,autor:"DAIRA LUZ VELANDIA MUNOZ"},
+  {title:"Valuation of projects with minimum revenue guarantees: A Gaussian copula\u2013based simulation approach",year:2017,citas:15,cuartil:"Q3",journal:"Engineering Economist",doi:"10.1080/0013791X.2016.1153178",primer_autor:true,autor:"CARLOS ANDRES MILOVIC FABREGAT"},
+  {title:"A skew-normal dynamic linear model and Bayesian forecasting",year:2019,citas:15,cuartil:"Q2",journal:"Computational Statistics",doi:"10.1007/s00180-018-0848-1",primer_autor:false,autor:"SEBASTIAN EDUARDO ARPON BARBA"},
+  {title:"An irregular discrete time series model to identify residuals with autocorrelation in astronomical light curves",year:2018,citas:14,cuartil:"Q1",journal:"Monthly Notices of the Royal Astronomical Society",doi:"10.1093/mnras/sty2487",primer_autor:false,autor:"DIEGO SEBASTIAN GONZALEZ DIAZ"},
+  {title:"A method for the reduction of the computational cost associated with the implementation of particle-filter-based failure prognostic algorithms",year:2020,citas:14,cuartil:"Q1",journal:"Mechanical Systems and Signal Processing",doi:"10.1016/j.ymssp.2019.106421",primer_autor:false,autor:"JAVIER ALEJANDRO ESPINOSA BRITO"},
+  {title:"Learning non-Gaussian Time Series using the Box-Cox Gaussian Process",year:2018,citas:13,cuartil:"-",journal:"Proceedings of the International Joint Conference on Neural Networks",doi:"10.1109/IJCNN.2018.8489648",primer_autor:true,autor:"DANIEL EDUARDO SANCHEZ IBA\u00c3\u0091EZ"},
+  {title:"Compromise design of stochastic dynamical systems: A reliability-based approach",year:2012,citas:12,cuartil:"Q1",journal:"Probabilistic Engineering Mechanics",doi:"10.1016/j.probengmech.2012.02.001",primer_autor:false,autor:"CRISTIAN ALBERTO VASQUEZ GUERRA"},
+  {title:"Discrete-time autoregressive model for unequally spaced time-series observations",year:2019,citas:12,cuartil:"Q1",journal:"Astronomy and Astrophysics",doi:"10.1051/0004-6361/201935560",primer_autor:true,autor:"BRAULIO ROBERTO BRUNAUD SANCHEZ"},
+  {title:"Information quantity evaluation of nonlinear time series processes and applications",year:2023,citas:12,cuartil:"Q1",journal:"Physica D: Nonlinear Phenomena",doi:"10.1016/j.physd.2022.133620",primer_autor:true,autor:"ROBINSON GABRIEL DETTONI HIDALGO"},
+  {title:"Reliability calculation using the McDonald&#x92;s Omega coefficient Los autores aludidos ofrecieron la siguiente r\u00e9plica: C\u00e1lculo de confiabilidad a trav\u00e9s del uso del coeficiente Omega de McDonald",year:2017,citas:11,cuartil:"-",journal:null,doi:"10.4067/S0034-98872017000200019",primer_autor:false,autor:"VANESSA LISBETH QUINTERO CEDE\u00c3\u0091O"},
+  {title:"Neural Network Prediction Interval Based on Joint Supervision",year:2018,citas:11,cuartil:"-",journal:"Proceedings of the International Joint Conference on Neural Networks",doi:"10.1109/IJCNN.2018.8489264",primer_autor:false,autor:"ALVARO OSSANDON ALVAREZ"},
+  {title:"Theoretical models of reaction times arising from simple-choice tasks",year:2019,citas:11,cuartil:"Q2",journal:"Cognitive Neurodynamics",doi:"10.1007/s11571-019-09532-1",primer_autor:false,autor:"CESARE MOLINARI"},
+  {title:"On modeling positive continuous data with spatiotemporal dependence",year:2020,citas:11,cuartil:"Q2",journal:"Environmetrics",doi:"10.1002/env.2632",primer_autor:false,autor:"ALVARO NICOLAS ARAVENA PONCE"},
+  {title:"Iterative regularization with convex regularizers",year:2021,citas:11,cuartil:"-",journal:"Proceedings of Machine Learning Research",doi:null,primer_autor:true,autor:"BASTIAN IGNACIO GALASSO DIAZ"},
+  {title:"Calibration strategies of PDC kinetic energy models and their application to the construction of hazard maps",year:2022,citas:11,cuartil:"Q1",journal:"Bulletin of Volcanology",doi:"10.1007/s00445-022-01538-8",primer_autor:true,autor:"DAVID EDUARDO URIBE RIVERA"},
+  {title:"Prediction Intervals with LSTM Networks Trained by Joint Supervision",year:2019,citas:10,cuartil:"-",journal:"Proceedings of the International Joint Conference on Neural Networks",doi:"10.1109/IJCNN.2019.8852215",primer_autor:false,autor:"LUIS MARIO RIQUELME QUEZADA"},
+  {title:"The predictive performance of process-explicit range change models remains largely untested",year:2023,citas:9,cuartil:"Q1",journal:"Ecography",doi:"10.1111/ecog.06048",primer_autor:true,autor:"NATHAM MATIAS AGUIRRE QUI\u00c3\u0091ONEZ"},
+  {title:"A Bayesian nonparametric testing procedure for paired samples",year:2020,citas:9,cuartil:"Q1",journal:"Biometrics",doi:"10.1111/biom.13234",primer_autor:true,autor:"LUZ ADRIANA PEREIRA HOYOS"},
+  {title:"Composite likelihood estimation for a Gaussian process under fixed domain asymptotics",year:2019,citas:9,cuartil:"Q1",journal:"Journal of Multivariate Analysis",doi:"10.1016/j.jmva.2019.104534",primer_autor:false,autor:"INES MARIA VARAS CACERES"},
+  {title:"Evaluating set measurement likelihoods in random-finite-set SLAM",year:2014,citas:9,cuartil:"-",journal:null,doi:null,primer_autor:false,autor:"PATRICK ANDRES VEGA ROMAN"},
+  {title:"The application of a general time series model to floodplain fisheries in the Amazon",year:2013,citas:8,cuartil:"Q1",journal:"Environmental Modelling and Software",doi:"10.1016/j.envsoft.2013.07.004",primer_autor:false,autor:"FELIPE ANDRES BELLO ROBLES"},
+  {title:"A constrained regression model for an ordinal response with ordinal predictors",year:2019,citas:8,cuartil:"Q1",journal:"Statistics and Computing",doi:"10.1007/s11222-018-9842-2",primer_autor:true,autor:"BENJAMIN HERRMANN PRIESNITZ"},
+  {title:"Generalized Link-Based Additive Survival Models with Informative Censoring",year:2020,citas:8,cuartil:"Q1",journal:"Journal of Computational and Graphical Statistics",doi:"10.1080/10618600.2020.1724544",primer_autor:true,autor:"RODRIGO ARIEL LOPEZ ORELLANA"},
+  {title:"A novel bivariate autoregressive model for predicting and forecasting irregularly observed time series",year:2021,citas:8,cuartil:"Q1",journal:"Monthly Notices of the Royal Astronomical Society",doi:"10.1093/mnras/stab1216",primer_autor:true,autor:"EDUARDO ANDRES AGUILAR TORRES"},
+  {title:"Bayesian learning with Wasserstein barycenters",year:2022,citas:8,cuartil:"Q3",journal:"ESAIM - Probability and Statistics",doi:"10.1051/ps/2022015",primer_autor:false,autor:"FERNANDO ALONSO ROJAS ZU\u00c3\u0091IGA"},
+  {title:"Information quantity evaluation of multivariate SETAR processes of order one and applications",year:2024,citas:8,cuartil:"Q2",journal:"Statistical Papers",doi:"10.1007/s00362-023-01457-6",primer_autor:true,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Forecasting of DST index from auroral electrojet indices using time-delay neural network + particle swarm optimization",year:2016,citas:7,cuartil:"-",journal:"Journal of Physics: Conference Series",doi:"10.1088/1742-6596/720/1/012001",primer_autor:false,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"Generalized autoregressive score models based on sinh-arcsinh distributions for time series analysis",year:2023,citas:7,cuartil:"Q2",journal:"Journal of Computational and Applied Mathematics",doi:"10.1016/j.cam.2022.114975",primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Gradient formulae for probability functions depending on a heterogenous family of constraints",year:2021,citas:6,cuartil:"-",journal:"Open Journal of Mathematical Optimization",doi:"10.5802/ojmo.9",primer_autor:false,autor:"FELIPE IGNACIO ELORRIETA LOPEZ"},
+  {title:"Control in Probability for SDE Models of Growth Population",year:2022,citas:5,cuartil:"Q1",journal:"Applied Mathematics and Optimization",doi:"10.1007/s00245-022-09915-7",primer_autor:true,autor:"LUIS GABRIEL MARIN COLLAZOS"},
+  {title:"Fuzzy interval modelling based on joint supervision",year:2020,citas:5,cuartil:"-",journal:"IEEE International Conference on Fuzzy Systems",doi:"10.1109/FUZZ48607.2020.9177779",primer_autor:false,autor:"PEDRO ANTONIO PEREZ AROS"},
+  {title:"Active learning for linear parameter-varying system identification",year:2020,citas:5,cuartil:"-",journal:"IFAC-PapersOnLine",doi:"10.1016/j.ifacol.2020.12.1274",primer_autor:false,autor:"MARCO ANTONIO RIVERA TAPIA"},
+  {title:"Is there a systematic relationship between random parameters and process heuristics?",year:2017,citas:5,cuartil:"Q1",journal:"Transportation Research Part E: Logistics and Transportation Review",doi:"10.1016/j.tre.2017.07.013",primer_autor:true,autor:"GINA KATHERINE SIERRA PAEZ"},
+  {title:"Robust State Estimation in Presence of Parametric Uncertainty by NL-PI observers. An Application to Continuous Microbial Cultures",year:2016,citas:5,cuartil:"Q2",journal:"IEEE Latin America Transactions",doi:"10.1109/TLA.2016.7459599",primer_autor:false,autor:"ARAMIS PEREZ MORA"},
+  {title:"Probabilistic inference for dynamical systems",year:2018,citas:4,cuartil:"Q2",journal:"Entropy",doi:"10.3390/e20090696",primer_autor:false,autor:"GONZALO ANDRES RIOS DIAZ"},
+  {title:"Time-of-failure probability mass function computation using the first-passage-time method applied to particle filter-based prognostics",year:2020,citas:4,cuartil:"-",journal:"Proceedings of the Annual Conference of the Prognostics and Health Management Society, PHM",doi:"10.36001/phmconf.2020.v12i1.1299",primer_autor:false,autor:"CESAR ANDRES QUILODRAN CASAS"},
+  {title:"Discrete and Continuous Logistic p-Fuzzy Models",year:2019,citas:4,cuartil:"-",journal:null,doi:"10.1007/978-3-030-21920-8_49",primer_autor:true,autor:"JONATHAN DANIEL ACOSTA SALAZAR"},
+  {title:"Thin plate spline model under skew-normal random errors: estimation and diagnostic analysis for spatial data",year:2023,citas:4,cuartil:"Q2",journal:"Journal of Statistical Computation and Simulation",doi:"10.1080/00949655.2022.2090564",primer_autor:false,autor:"MATIAS TORO IPINZA"},
+  {title:"A Method to Alleviate the Long History Problem Encountered in Monte Carlo Simulations via Weight Window Variance Reduction",year:2017,citas:4,cuartil:"Q2",journal:"Journal of Fusion Energy",doi:"10.1007/s10894-017-0140-3",primer_autor:false,autor:"FREDDY OMAR LOPEZ QUINTERO"},
+  {title:"An autoregressive model for irregular time series of variable stars",year:2016,citas:4,cuartil:"Q4",journal:"Proceedings of the International Astronomical Union",doi:"10.1017/S1743921317000448",primer_autor:false,autor:"CHRISTIAN ELOY CAAMA\u00c3\u0091O CARRILLO"},
+  {title:"Impact of noise on a dynamical system: Prediction and uncertainties from a swarm-optimized neural network",year:2015,citas:4,cuartil:"-",journal:null,doi:"10.1155/2015/145874",primer_autor:false,autor:"ALEJANDRO IGNACIO MAASS MARTINEZ"},
+  {title:"Reliability-based synthesis of non-linear stochastic dynamical systems: A global approximation approach",year:2010,citas:4,cuartil:"Q3",journal:"International Journal of Reliability and Safety",doi:"10.1504/IJRS.2010.032443",primer_autor:false,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Intermediate Model Between Majority Voter PCA and Its Mean Field Model",year:2015,citas:3,cuartil:"Q2",journal:"Journal of Statistical Physics",doi:"10.1007/s10955-014-1037-4",primer_autor:false,autor:"HANNE MARIA VAN DEN BOSCH"},
+  {title:"Automated algorithm to determine kLa considering system delay",year:2017,citas:3,cuartil:"Q1",journal:"Journal of Chemical Technology and Biotechnology",doi:"10.1002/jctb.5157",primer_autor:true,autor:"PAULINA MACARENA TORRES PLAZA"},
+  {title:"ON THE CONSISTENCY OF LEAST SQUARES ESTIMATOR IN MODELS SAMPLED AT RANDOM TIMES DRIVEN BY LONG MEMORY NOISE: THE JITTERED CASE",year:2023,citas:3,cuartil:"Q1",journal:"Statistica Sinica",doi:"10.5705/ss.202020.0323",primer_autor:true,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"FREQUENCY-EXPLICIT A POSTERIORI ERROR ESTIMATES FOR DISCONTINUOUS GALERKIN DISCRETIZATIONS OF MAXWELL'S EQUATIONS",year:2024,citas:3,cuartil:"Q1",journal:"SIAM Journal on Numerical Analysis",doi:"10.1137/22M1516348",primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Multi-objective SINDy for parameterized model discovery from single transient trajectory data",year:2025,citas:3,cuartil:"-",journal:null,doi:"10.1007/s11071-024-10825-2",primer_autor:false,autor:"FELIPE IGNACIO ELORRIETA LOPEZ"},
+  {title:"Temporal Cox Process with Folded Normal Intensity",year:2022,citas:2,cuartil:"-",journal:null,doi:"10.3390/axioms11100513",primer_autor:false,autor:"LUIS GABRIEL MARIN COLLAZOS"},
+  {title:"Modeling Time Series with SARIMAX and Skew-Normal and Zero-Inflated Skew-Normal Errors",year:2025,citas:2,cuartil:"-",journal:null,doi:"10.3390/math13111892",primer_autor:false,autor:"PEDRO ANTONIO PEREZ AROS"},
+  {title:"Monte Carlo method for constructing confidence intervals with unconstrained and constrained nuisance parameters in the NOvA experiment",year:2025,citas:2,cuartil:"-",journal:null,doi:"10.1088/1748-0221/20/02/T02001",primer_autor:false,autor:"CAMILA BALBONTIN TANHNUZ"},
+  {title:"Sensitivity Analysis of Stochastic Constraint and Variational Systems via Generalized Differentiation",year:2023,citas:2,cuartil:"Q1",journal:"Set-Valued and Variational Analysis",doi:"10.1007/s11228-023-00660-9",primer_autor:false,autor:"MARCO ANTONIO RIVERA TAPIA"},
+  {title:"Maximum likelihood estimation for a bivariate Gaussian process under fixed domain asymptotics",year:2017,citas:2,cuartil:"Q1",journal:"Electronic Journal of Statistics",doi:"10.1214/17-EJS1298",primer_autor:true,autor:"CAMILA ANDREA MELLA SAN MARTIN"},
+  {title:"Reduced Order Surrogate Modelling and Latent Assimilation for Dynamical Systems",year:2022,citas:2,cuartil:"Q2",journal:"Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)",doi:"10.1007/978-3-031-08760-8_3",primer_autor:false,autor:"ARAMIS PEREZ MORA"},
+  {title:"Parameter estimation for a discrete time model driven by fractional Poisson process",year:2023,citas:2,cuartil:"Q3",journal:"Communications in Statistics - Theory and Methods",doi:"10.1080/03610926.2021.1973504",primer_autor:true,autor:"GONZALO ANDRES RIOS DIAZ"},
+  {title:"Bayesian inference for fractional Oscillating Brownian motion",year:2022,citas:2,cuartil:"Q2",journal:"Computational Statistics",doi:"10.1007/s00180-021-01146-8",primer_autor:true,autor:"CESAR ANDRES QUILODRAN CASAS"},
+  {title:"Sensitivity analysis for variance parameters in Bayesian simplex mixed models for proportional data",year:2017,citas:2,cuartil:"-",journal:null,doi:"10.1080/03610918.2016.1146763",primer_autor:true,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Bayesian nonparametric hypothesis testing for longitudinal data analysis",year:2023,citas:1,cuartil:"Q1",journal:"Computational Statistics and Data Analysis",doi:"10.1016/j.csda.2022.107629",primer_autor:true,autor:"JACQUELINE ROSARIO LLANOS PROANO"},
+  {title:"Numerical Solution of an Optimal Control Problem with Probabilistic and Almost Sure State Constraints",year:2025,citas:1,cuartil:"-",journal:null,doi:"10.1007/s10957-024-02578-0",primer_autor:false,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"Easy, fast and reproducible Stochastic Cellular Automata with chouca",year:2024,citas:1,cuartil:"Q1",journal:"Peer Community Journal",doi:"10.24072/pcjournal.466",primer_autor:false,autor:"MARIA ISIDORA AVILA THIEME"},
+  {title:"Extending time-series models for irregular observational gaps with a moving average structure for astronomical sequences",year:2023,citas:1,cuartil:"-",journal:"RAS Techniques and Instruments",doi:"10.1093/rasti/rzac011",primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Least squares estimation for the Ornstein\u2013Uhlenbeck process with small Hermite noise",year:2024,citas:1,cuartil:"Q2",journal:"Statistical Papers",doi:"10.1007/s00362-024-01579-5",primer_autor:true,autor:"FELIPE IGNACIO ELORRIETA LOPEZ"},
+  {title:"Probability Functions Generated by Set-Valued Mappings: A Study of First Order Information",year:2024,citas:1,cuartil:"Q1",journal:"Set-Valued and Variational Analysis",doi:"10.1007/s11228-024-00709-3",primer_autor:false,autor:"LUIS GABRIEL MARIN COLLAZOS"},
+  {title:"Correlation Integral for Stationary Gaussian Time Series",year:2024,citas:1,cuartil:"Q3",journal:"Sankhya A",doi:"10.1007/s13171-023-00318-6",primer_autor:true,autor:"PEDRO ANTONIO PEREZ AROS"},
+  {title:"Large deviations approach to a one-dimensional, time-periodic stochastic model of pattern formation",year:2022,citas:1,cuartil:"Q1",journal:"Chaos, Solitons and Fractals",doi:"10.1016/j.chaos.2022.112845",primer_autor:true,autor:"MARCO ANTONIO RIVERA TAPIA"},
+  {title:"Modeling and prediction of criminal activity based on spatio-temporal probabilistic risk functions",year:2015,citas:1,cuartil:"-",journal:"Proceedings of the Annual Conference of the Prognostics and Health Management Society, PHM",doi:null,primer_autor:false,autor:"ARAMIS PEREZ MORA"},
+  {title:"Bayesian semiparametric modelling of phase-varying point processes",year:2022,citas:1,cuartil:"Q1",journal:"Electronic Journal of Statistics",doi:"10.1214/21-EJS1973",primer_autor:true,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Improving tail accuracy of the predicted cumulative distribution function of time of failure",year:2021,citas:1,cuartil:"Q1",journal:"Reliability Engineering and System Safety",doi:"10.1016/j.ress.2020.107333",primer_autor:true,autor:"BARBARA SUSETE YAEGGY ALVAREZ"},
+  {title:"A Bayesian Nonparametric Latent Approach for Score Distributions in Test Equating",year:2020,citas:1,cuartil:"Q1",journal:"Journal of Educational and Behavioral Statistics",doi:"10.3102/1076998620907381",primer_autor:true,autor:"ANGELA MATILDE FLORES QUIROZ"},
+  {title:"Bayesian estimation of the limiting availability in a repairable one-unit system: Estimaci\u00f3n bayesiana de la disponibilidad l\u00edmite en un sistema reparable uni-componente",year:2019,citas:1,cuartil:"Q4",journal:"Revista Colombiana de Estadistica",doi:"10.15446/rce.v42n1.66279",primer_autor:true,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"The use of component mode synthesis techniques for large finite element model updating using dynamic response data",year:2014,citas:1,cuartil:"-",journal:"Proceedings of the International Conference on Structural Dynamic , EURODYN",doi:null,primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Simultaneous state and parameter estimation for a nonlinear time-varying system Estimaci\u00f3n simult\u00e1nea de estado y par\u00e1metros para un sistema no lineal variante en el tiempo",year:2014,citas:1,cuartil:"Q3",journal:"RIAI - Revista Iberoamericana de Automatica e Informatica Industrial",doi:"10.1016/j.riai.2014.05.001",primer_autor:false,autor:"FELIPE IGNACIO ELORRIETA LOPEZ"},
+  {title:"Customizable gradual polymorphic effects for Scala",year:2015,citas:1,cuartil:"Q1",journal:"ACM SIGPLAN Notices",doi:"10.1145/2814270.2814315",primer_autor:true,autor:"LUIS GABRIEL MARIN COLLAZOS"},
+  {title:"ON THE CONSISTENCY OF THE LEAST SQUARES ESTIMATOR IN MODELS SAMPLED AT RANDOM TIMES DRIVEN BY LONG MEMORY NOISE: THE RENEWAL CASE",year:2023,citas:0,cuartil:"Q1",journal:"Statistica Sinica",doi:"10.5705/ss.202020.0457",primer_autor:true,autor:"PEDRO ANTONIO PEREZ AROS"},
+  {title:"Column generation for multistage stochastic mixed-integer nonlinear programs with discrete state variables",year:2025,citas:0,cuartil:"-",journal:null,doi:"10.1007/s10898-025-01480-x",primer_autor:false,autor:"DAIRA LUZ VELANDIA MUNOZ"},
+  {title:"AN INFERENTIAL CONCEPTION OF TARGET-SYSTEMS IN THE SCIENTIFIC MODELING PRACTICE UNA CONCEPCI\u00d3N INFERENCIAL DE LOS SISTEMAS-OBJETIVO EN LA PR\u00c1CTICA DE MODELIZACI\u00d3N CIENT\u00cdFICA",year:2024,citas:0,cuartil:"Q4",journal:"Revista de Filosofia (Chile)",doi:"10.5354/0718-4360.2024.75089",primer_autor:true,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"A multi-objective optimisation approach for the linear modelling of cerebral autoregulation system",year:2024,citas:0,cuartil:"Q3",journal:"BioSystems",doi:"10.1016/j.biosystems.2024.105231",primer_autor:true,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"Trajectory fitting estimation for stochastic differential equations driven by fractional Brownian motion",year:2023,citas:0,cuartil:"Q4",journal:"Random Operators and Stochastic Equations",doi:"10.1515/rose-2023-2018",primer_autor:true,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"On the impact of missing outcomes in linear regression",year:2023,citas:0,cuartil:"Q3",journal:"Chilean Journal of Statistics",doi:"10.32372/chjs.14-01-02",primer_autor:false,autor:"VANESSA LISBETH QUINTERO CEDE\u00c3\u0091O"},
+  {title:"Spatio-temporal probabilistic modeling based on gaussian mixture models and neural gas theory for prediction of criminal activity",year:2017,citas:0,cuartil:"-",journal:"Proceedings of the Annual Conference of the Prognostics and Health Management Society, PHM",doi:null,primer_autor:false,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"An algorithm for the selection of linearisation points in non-linear systems: a diesel air-path case study",year:2023,citas:0,cuartil:"Q2",journal:"International Journal of Control",doi:"10.1080/00207179.2022.2135606",primer_autor:false,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"A comparative study on computation of cumulative distribution function in predicting time of failure of engineering systems",year:2019,citas:0,cuartil:"-",journal:"Proceedings of the Annual Conference of the Prognostics and Health Management Society, PHM",doi:"10.36001/phmconf.2019.v11i1.846",primer_autor:true,autor:"LUZ ADRIANA PEREIRA HOYOS"},
+  {title:"An efficient first-order scheme for reliability based optimization of stochastic systems",year:2011,citas:0,cuartil:"Q2",journal:"Computational Methods in Applied Sciences",doi:"10.1007/978-90-481-9987-7_7",primer_autor:false,autor:"HECTOR ANDRES ARAYA CARVAJAL"},
+  {title:"Design of isolation systems for large scale building models under stochastic excitation",year:2013,citas:0,cuartil:"-",journal:null,doi:null,primer_autor:false,autor:"JAVIER ESTEBAN CONTRERAS REYES"},
+  {title:"Efficient assessment of first excursion probabilities for uncertain linear dynamical structures subject to gaussian excitation",year:2013,citas:0,cuartil:"-",journal:null,doi:null,primer_autor:false,autor:"DANILO SMILJAN KUSANOVIC MALDONADO"},
+  {title:"Uncertainty-Driven Past-Sample Selection for Replay-Based Continual Learning",year:2025,citas:0,cuartil:"-",journal:null,doi:"10.5220/0013140700003912",primer_autor:false,autor:"JAVIER ESTEBAN CONTRERAS REYES"}
+];;
+const BECARIOS_MAP = {
+  "JAVIER ESTEBAN CONTRERAS REYES": {genero:"Hombre",gse:"sin_informacion",pais:"CHILE",afil:"Institute of Mathematics",scopus:92,pubs:10},
+  "DANILO SMILJAN KUSANOVIC MALDONADO": {genero:"Hombre",gse:"Medio alto",pais:"Estados Unidos",afil:"",scopus:22,pubs:9},
+  "HECTOR ANDRES ARAYA CARVAJAL": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Facultad de Ingenier\u00eda y Ciencias",scopus:21,pubs:7},
+  "FELIPE IGNACIO ELORRIETA LOPEZ": {genero:"Hombre",gse:"Medio alto",pais:"CHILE",afil:"Department of Mathematics and Computer Science",scopus:18,pubs:5},
+  "LUIS GABRIEL MARIN COLLAZOS": {genero:"Hombre",gse:"sin_informacion",pais:"CHILE",afil:"",scopus:26,pubs:5},
+  "PEDRO ANTONIO PEREZ AROS": {genero:"Hombre",gse:"Bajo",pais:"CHILE",afil:"Departamento de Ingenier\u00eda Matem\u00e1tica",scopus:40,pubs:5},
+  "MARCO ANTONIO RIVERA TAPIA": {genero:"Hombre",gse:"Bajo",pais:"CHILE",afil:"Department of Physics",scopus:6,pubs:4},
+  "ARAMIS PEREZ MORA": {genero:"Hombre",gse:"sin_informacion",pais:"CHILE",afil:"",scopus:35,pubs:4},
+  "GONZALO ANDRES RIOS DIAZ": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"",scopus:6,pubs:3},
+  "CESAR ANDRES QUILODRAN CASAS": {genero:"Hombre",gse:"Medio alto",pais:"REINO UNIDO DE GB E IRLANDA DEL NORTE",afil:"",scopus:12,pubs:3},
+  "JONATHAN DANIEL ACOSTA SALAZAR": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Department of Statistics",scopus:16,pubs:2},
+  "MATIAS TORO IPINZA": {genero:"Hombre",gse:"Medio alto",pais:"CHILE",afil:"Pleiad Lab",scopus:16,pubs:2},
+  "FREDDY OMAR LOPEZ QUINTERO": {genero:"Hombre",gse:"estudio extranjero",pais:"CHILE",afil:"",scopus:9,pubs:2},
+  "DAIRA LUZ VELANDIA MUNOZ": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"Institute of Statistics",scopus:8,pubs:2},
+  "VANESSA LISBETH QUINTERO CEDE\u00c3\u0091O": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"Faculty of Electrical Engineering",scopus:25,pubs:2},
+  "LUZ ADRIANA PEREIRA HOYOS": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"Escuela de Estad\u00edstica",scopus:3,pubs:2},
+  "INES MARIA VARAS CACERES": {genero:"Mujer",gse:"Medio alto",pais:"CHILE",afil:"",scopus:4,pubs:2},
+  "GINA KATHERINE SIERRA PAEZ": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"",scopus:7,pubs:2},
+  "CHRISTIAN ELOY CAAMA\u00c3\u0091O CARRILLO": {genero:"Hombre",gse:"Bajo",pais:"CHILE",afil:"Department of Statistics",scopus:18,pubs:2},
+  "ALEJANDRO IGNACIO MAASS MARTINEZ": {genero:"Hombre",gse:"Alto",pais:"AUSTRALIA",afil:"Department of Electrical Engineering",scopus:35,pubs:2},
+  "RICARDO RODRIGO PEREZ IBACACHE": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"",scopus:13,pubs:1},
+  "FELIPE IGNACIO INOSTROZA FERRARI": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"",scopus:18,pubs:1},
+  "HANNE MARIA VAN DEN BOSCH": {genero:"Mujer",gse:"estudio extranjero",pais:"CHILE",afil:"Departamento de Ingenier\u00eda Matem\u00e1tica",scopus:15,pubs:1},
+  "FRANCISCO HAWAS": {genero:"Hombre",gse:"Medio alto",pais:"Estados Unidos",afil:"",scopus:3,pubs:1},
+  "RICARDO ALONSO LUNA HERNANDEZ": {genero:"Hombre",gse:"Medio alto",pais:"CHILE",afil:"",scopus:14,pubs:1},
+  "PAULINA MACARENA TORRES PLAZA": {genero:"Mujer",gse:"Medio alto",pais:"CHILE",afil:"Department of Chemical and Bioprocess Engineering",scopus:3,pubs:1},
+  "CAMILA BALBONTIN TANHNUZ": {genero:"Mujer",gse:"Alto",pais:"AUSTRALIA",afil:"",scopus:49,pubs:1},
+  "GERMAN VOGEL": {genero:"Hombre",gse:"Alto",pais:"China",afil:"",scopus:15,pubs:1},
+  "CAMILA ANDREA MELLA SAN MARTIN": {genero:"Mujer",gse:"Alto",pais:"REINO UNIDO DE GB E IRLANDA DEL NORTE",afil:"Department of Social Policy and Intervention",scopus:7,pubs:1},
+  "CARLOS ANDRES MILOVIC FABREGAT": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"School of Electrical Engineering",scopus:22,pubs:1},
+  "SEBASTIAN EDUARDO ARPON BARBA": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"School of Business",scopus:2,pubs:1},
+  "DIEGO SEBASTIAN GONZALEZ DIAZ": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Department of Physics",scopus:15,pubs:1},
+  "JAVIER ALEJANDRO ESPINOSA BRITO": {genero:"Hombre",gse:"Medio alto",pais:"REINO UNIDO DE GB E IRLANDA DEL NORTE",afil:"Department of Economics",scopus:3,pubs:1},
+  "DANIEL EDUARDO SANCHEZ IBA\u00c3\u0091EZ": {genero:"Hombre",gse:"Bajo",pais:"BRASIL",afil:"Center of Basic Science Teaching for Engineering",scopus:19,pubs:1},
+  "CRISTIAN ALBERTO VASQUEZ GUERRA": {genero:"Hombre",gse:"Medio",pais:"REINO UNIDO DE GB E IRLANDA DEL NORTE",afil:"",scopus:17,pubs:1},
+  "BRAULIO ROBERTO BRUNAUD SANCHEZ": {genero:"Hombre",gse:"Alto",pais:"Estados Unidos",afil:"",scopus:11,pubs:1},
+  "ROBINSON GABRIEL DETTONI HIDALGO": {genero:"Hombre",gse:"Medio alto",pais:"REINO UNIDO DE GB E IRLANDA DEL NORTE",afil:"Department of Economics",scopus:6,pubs:1},
+  "ALVARO OSSANDON ALVAREZ": {genero:"Hombre",gse:"sin_informacion",pais:"Estados Unidos",afil:"Departamento de Obras Civiles",scopus:11,pubs:1},
+  "CESARE MOLINARI": {genero:"Hombre",gse:"estudio extranjero",pais:"CHILE",afil:"",scopus:18,pubs:1},
+  "ALVARO NICOLAS ARAVENA PONCE": {genero:"Hombre",gse:"Medio alto",pais:"ITALIA",afil:"",scopus:30,pubs:1},
+  "BASTIAN IGNACIO GALASSO DIAZ": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Department of Innovation and Digital Transformation",scopus:1,pubs:1},
+  "DAVID EDUARDO URIBE RIVERA": {genero:"Hombre",gse:"Medio",pais:"AUSTRALIA",afil:"",scopus:10,pubs:1},
+  "LUIS MARIO RIQUELME QUEZADA": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"Department of Mathematics and Computer Science",scopus:1,pubs:1},
+  "NATHAM MATIAS AGUIRRE QUI\u00c3\u0091ONEZ": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"Department of Mathematics",scopus:4,pubs:1},
+  "JACQUELINE ROSARIO LLANOS PROANO": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"",scopus:62,pubs:1},
+  "PATRICK ANDRES VEGA ROMAN": {genero:"Hombre",gse:"Bajo",pais:"CHILE",afil:"",scopus:10,pubs:1},
+  "FELIPE ANDRES BELLO ROBLES": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Departamento de Ingenier\u00eda Inform\u00e1tica",scopus:4,pubs:1},
+  "MARIA ISIDORA AVILA THIEME": {genero:"Mujer",gse:"Alto",pais:"CHILE",afil:"",scopus:11,pubs:1},
+  "BENJAMIN HERRMANN PRIESNITZ": {genero:"Hombre",gse:"Alto",pais:"CHILE",afil:"",scopus:19,pubs:1},
+  "RODRIGO ARIEL LOPEZ ORELLANA": {genero:"Hombre",gse:"Alto",pais:"ESPA\u00c3\u0091A",afil:"Institute of Philosophy",scopus:12,pubs:1},
+  "BARBARA SUSETE YAEGGY ALVAREZ": {genero:"Mujer",gse:"sin_informacion",pais:"CHILE",afil:"",scopus:53,pubs:1},
+  "ANGELA MATILDE FLORES QUIROZ": {genero:"Mujer",gse:"sin_informacion",pais:"Alemania",afil:"",scopus:7,pubs:1},
+  "EDUARDO ANDRES AGUILAR TORRES": {genero:"Hombre",gse:"Medio alto",pais:"ESPA\u00c3\u0091A",afil:"",scopus:36,pubs:1},
+  "FERNANDO ALONSO ROJAS ZU\u00c3\u0091IGA": {genero:"Hombre",gse:"Medio",pais:"CHILE",afil:"Centro de Micro-Bioinnovaci\u00f3n",scopus:26,pubs:1}
+};;
+const DATA = {
+  temporal: [
+    {period:"after",genero:"Hombre",n:45},
+    {period:"after",genero:"Mujer",n:11},
+    {period:"before",genero:"Hombre",n:10},
+    {period:"during",genero:"Hombre",n:28},
+    {period:"during",genero:"Mujer",n:5},
+  ],
+  interseccional: [
+    {gse:"Alto",genero:"Hombre",n_becarios:10,mediana_pubs:13.5},
+    {gse:"Alto",genero:"Mujer",n_becarios:3,mediana_pubs:11.0},
+    {gse:"Bajo",genero:"Hombre",n_becarios:5,mediana_pubs:18.0},
+    {gse:"Medio",genero:"Hombre",n_becarios:10,mediana_pubs:14.0},
+    {gse:"Medio alto",genero:"Hombre",n_becarios:10,mediana_pubs:15.0},
+    {gse:"Medio alto",genero:"Mujer",n_becarios:2,mediana_pubs:3.5},
+    {gse:"estudio extranjero",genero:"Hombre",n_becarios:2,mediana_pubs:13.5},
+    {gse:"estudio extranjero",genero:"Mujer",n_becarios:1,mediana_pubs:15.0},
+    {gse:"sin_informacion",genero:"Hombre",n_becarios:4,mediana_pubs:30.5},
+    {gse:"sin_informacion",genero:"Mujer",n_becarios:7,mediana_pubs:8.0},
+  ],
+  fields: [
+    {field:"Mathematics",n_pubs:49},
+    {field:"Computer Science",n_pubs:38},
+    {field:"Engineering",n_pubs:33},
+    {field:"Physics and Astronomy",n_pubs:18},
+    {field:"Decision Sciences",n_pubs:18},
+    {field:"Earth and Planetary Sciences",n_pubs:7},
+    {field:"Health Professions",n_pubs:4},
+    {field:"Biochemistry",n_pubs:4},
+    {field:"Environmental Science",n_pubs:4},
+    {field:"Agricultural and Biological Sciences",n_pubs:3},
+    {field:"Chemical Engineering",n_pubs:3},
+    {field:"Social Sciences",n_pubs:3},
+    {field:"Energy",n_pubs:3},
+    {field:"Neuroscience",n_pubs:3},
+    {field:"Business",n_pubs:2},
+  ],
+  cuartiles_genero: [
+    {genero:"Hombre",cuartil:"-",n:15},
+    {genero:"Hombre",cuartil:"Q1",n:32},
+    {genero:"Hombre",cuartil:"Q2",n:20},
+    {genero:"Hombre",cuartil:"Q3",n:7},
+    {genero:"Hombre",cuartil:"Q4",n:4},
+    {genero:"Mujer",cuartil:"-",n:3},
+    {genero:"Mujer",cuartil:"Q1",n:9},
+    {genero:"Mujer",cuartil:"Q2",n:2},
+    {genero:"Mujer",cuartil:"Q3",n:1},
+  ],
+  becarios: Object.entries(BECARIOS_MAP).map(([nombre,d])=>({nombre,...d})),
+  journals:[
+    {journal:"Proceedings of the Annual Conference of the Prognostics and Health Management Society, PHM",publisher:"Prognostics and Health Management Society",cuartil:"-",sjr:141,pais:"United States",npubs:4,nbec:3},
+    {journal:"Computational Statistics",publisher:"Springer Verlag",cuartil:"Q2",sjr:538,pais:"Germany",npubs:3,nbec:3},
+    {journal:"Proceedings of the International Joint Conference on Neural Networks",publisher:null,cuartil:"-",sjr:423,pais:"United States",npubs:3,nbec:2},
+    {journal:"Computer Methods in Applied Mechanics and Engineering",publisher:"Elsevier B.V.",cuartil:"Q1",sjr:null,pais:"Netherlands",npubs:2,nbec:1},
+    {journal:"Journal of Physics: Conference Series",publisher:"IOP Publishing Ltd.",cuartil:"-",sjr:210,pais:"United Kingdom",npubs:2,nbec:1},
+    {journal:"Electronic Journal of Statistics",publisher:"Institute of Mathematical Statistics",cuartil:"Q1",sjr:null,pais:"United States",npubs:2,nbec:2},
+    {journal:"Monthly Notices of the Royal Astronomical Society",publisher:"Oxford University Press",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:2,nbec:1},
+    {journal:"Journal of Statistical Computation and Simulation",publisher:"Taylor and Francis Ltd.",cuartil:"Q2",sjr:510,pais:"United Kingdom",npubs:2,nbec:1},
+    {journal:"Set-Valued and Variational Analysis",publisher:"Springer Verlag",cuartil:"Q1",sjr:890,pais:"Germany",npubs:2,nbec:1},
+    {journal:"Statistica Sinica",publisher:"Institute of Statistical Science",cuartil:"Q1",sjr:null,pais:"Taiwan",npubs:2,nbec:1},
+    {journal:"Statistical Papers",publisher:"Springer New York",cuartil:"Q2",sjr:775,pais:"United States",npubs:2,nbec:2},
+    {journal:"International Journal of Reliability and Safety",publisher:"Inderscience Enterprises Ltd",cuartil:"Q3",sjr:165,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Probabilistic Engineering Mechanics",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Environmental Modelling and Software",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"RIAI - Revista Iberoamericana de Automatica e Informatica Industrial",publisher:"Universidad Politecnica de Valencia",cuartil:"Q3",sjr:246,pais:"Spain",npubs:1,nbec:1},
+    {journal:"Journal of Statistical Physics",publisher:"Springer",cuartil:"Q2",sjr:982,pais:"United States",npubs:1,nbec:1},
+    {journal:"Physics Letters, Section A: General, Atomic and Solid State Physics",publisher:"Elsevier B.V.",cuartil:"Q2",sjr:787,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Proceedings of the Conference on Object-Oriented Programming Systems, Languages, and Applications, OOPSLA",publisher:"Association for Computing Machinery",cuartil:"-",sjr:962,pais:"United States",npubs:1,nbec:1},
+    {journal:"Engineering Economist",publisher:"Taylor and Francis Ltd.",cuartil:"Q3",sjr:161,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Computational Methods in Applied Sciences",publisher:"Springer",cuartil:"Q2",sjr:238,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"IEEE Latin America Transactions",publisher:"IEEE Computer Society",cuartil:"Q2",sjr:227,pais:"United States",npubs:1,nbec:1},
+    {journal:"Proceedings of the International Conference on Structural Dynamic , EURODYN",publisher:"European Association for Structural Dynamics",cuartil:"-",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Journal of Chemical Technology and Biotechnology",publisher:"John Wiley and Sons Ltd",cuartil:"Q1",sjr:599,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Proceedings of the International Astronomical Union",publisher:"Cambridge University Press",cuartil:"Q4",sjr:126,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Transportation Research Part E: Logistics and Transportation Review",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Journal of Fusion Energy",publisher:"Springer New York",cuartil:"Q2",sjr:411,pais:"United States",npubs:1,nbec:1},
+    {journal:"Magnetic Resonance in Medicine",publisher:"John Wiley and Sons Inc",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"Mathematical Programming",publisher:"Springer-Verlag GmbH and Co. KG",cuartil:"Q1",sjr:null,pais:"Germany",npubs:1,nbec:1},
+    {journal:"Entropy",publisher:"Multidisciplinary Digital Publishing Institute (MDPI)",cuartil:"Q2",sjr:541,pais:"Switzerland",npubs:1,nbec:1},
+    {journal:"Expert Systems with Applications",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Statistics and Computing",publisher:"Springer Netherlands",cuartil:"Q1",sjr:null,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Cognitive Neurodynamics",publisher:"Springer Science and Business Media B.V.",cuartil:"Q2",sjr:null,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Neural Networks",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Astronomy and Astrophysics",publisher:"EDP Sciences",cuartil:"Q1",sjr:null,pais:"France",npubs:1,nbec:1},
+    {journal:"Journal of Multivariate Analysis",publisher:"Academic Press Inc.",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"Revista Colombiana de Estadistica",publisher:"Universidad Nacional de Colombia",cuartil:"Q4",sjr:128,pais:"Colombia",npubs:1,nbec:1},
+    {journal:"Mechanical Systems and Signal Processing",publisher:"Academic Press",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"Computers and Chemical Engineering",publisher:"Elsevier B.V.",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Biometrics",publisher:"Oxford University Press",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Journal of Computational and Graphical Statistics",publisher:"Taylor and Francis Ltd.",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Journal of Educational and Behavioral Statistics",publisher:"SAGE Publications Inc.",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"Environmetrics",publisher:"John Wiley and Sons Ltd",cuartil:"Q2",sjr:979,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Physica A: Statistical Mechanics and its Applications",publisher:"Elsevier B.V.",cuartil:"Q2",sjr:669,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"IEEE International Conference on Fuzzy Systems",publisher:"Institute of Electrical and Electronics Engineers Inc.",cuartil:"-",sjr:386,pais:"United States",npubs:1,nbec:1},
+    {journal:"Reliability Engineering and System Safety",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"IEEE Access",publisher:"Institute of Electrical and Electronics Engineers Inc.",cuartil:"Q1",sjr:849,pais:"United States",npubs:1,nbec:1},
+    {journal:"IFAC-PapersOnLine",publisher:"Elsevier B.V.",cuartil:"-",sjr:365,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Journal of Hydrology",publisher:"Elsevier B.V.",cuartil:"Q1",sjr:null,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"ACM SIGPLAN Notices",publisher:"Association for Computing Machinery (ACM)",cuartil:"Q1",sjr:462,pais:"United States",npubs:1,nbec:1},
+    {journal:"Communications in Statistics - Theory and Methods",publisher:"Taylor and Francis Ltd.",cuartil:"Q3",sjr:435,pais:"United States",npubs:1,nbec:1},
+    {journal:"Proceedings of Machine Learning Research",publisher:null,cuartil:"-",sjr:null,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Open Journal of Mathematical Optimization",publisher:"Universite de Montpellier III",cuartil:"-",sjr:null,pais:"France",npubs:1,nbec:1},
+    {journal:"Bulletin of Volcanology",publisher:"Springer Verlag",cuartil:"Q1",sjr:null,pais:"Germany",npubs:1,nbec:1},
+    {journal:"Remote Sensing",publisher:"Multidisciplinary Digital Publishing Institute (MDPI)",cuartil:"Q1",sjr:null,pais:"Switzerland",npubs:1,nbec:1},
+    {journal:"Lecture Notes in Computer Science (including subseries Lecture Notes in Artificial Intelligence and Lecture Notes in Bioinformatics)",publisher:"Springer Science and Business Media Deutschland GmbH",cuartil:"Q2",sjr:293,pais:"Germany",npubs:1,nbec:1},
+    {journal:"Ecography",publisher:"Wiley-Blackwell Publishing Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Computational Statistics and Data Analysis",publisher:"Elsevier B.V.",cuartil:"Q1",sjr:null,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Applied Mathematics and Optimization",publisher:"Springer New York",cuartil:"Q1",sjr:916,pais:"United States",npubs:1,nbec:1},
+    {journal:"International Journal of Control",publisher:"Taylor and Francis Ltd.",cuartil:"Q2",sjr:862,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Chaos, Solitons and Fractals",publisher:"Elsevier Ltd",cuartil:"Q1",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Journal of Computational and Applied Mathematics",publisher:"Elsevier B.V.",cuartil:"Q2",sjr:858,pais:"Netherlands",npubs:1,nbec:2},
+    {journal:"ESAIM - Probability and Statistics",publisher:"EDP Sciences",cuartil:"Q3",sjr:328,pais:"France",npubs:1,nbec:1},
+    {journal:"Physica D: Nonlinear Phenomena",publisher:"Elsevier B.V.",cuartil:"Q1",sjr:940,pais:"Netherlands",npubs:1,nbec:1},
+    {journal:"Electronics (Switzerland)",publisher:"Multidisciplinary Digital Publishing Institute (MDPI)",cuartil:"Q2",sjr:303,pais:"Switzerland",npubs:1,nbec:1},
+    {journal:"IEEE/CAA Journal of Automatica Sinica",publisher:"IEEE Advancing Technology for Humanity",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"Sankhya A",publisher:"Springer India",cuartil:"Q3",sjr:309,pais:"India",npubs:1,nbec:1},
+    {journal:"Chilean Journal of Statistics",publisher:"Chilean Statistical Society",cuartil:"Q3",sjr:334,pais:"Chile",npubs:1,nbec:1},
+    {journal:"Random Operators and Stochastic Equations",publisher:"Walter de Gruyter GmbH",cuartil:"Q4",sjr:256,pais:"Germany",npubs:1,nbec:1},
+    {journal:"Machine Learning and Knowledge Extraction",publisher:"Multidisciplinary Digital Publishing Institute (MDPI)",cuartil:"Q1",sjr:977,pais:"Switzerland",npubs:1,nbec:1},
+    {journal:"SIAM Journal on Numerical Analysis",publisher:"Society for Industrial and Applied Mathematics Publications",cuartil:"Q1",sjr:null,pais:"United States",npubs:1,nbec:1},
+    {journal:"BioSystems",publisher:"Elsevier Ireland Ltd",cuartil:"Q3",sjr:370,pais:"Ireland",npubs:1,nbec:1},
+    {journal:"RAS Techniques and Instruments",publisher:"Oxford University Press",cuartil:"-",sjr:null,pais:"United Kingdom",npubs:1,nbec:1},
+    {journal:"Peer Community Journal",publisher:"Centre Mersenne",cuartil:"Q1",sjr:797,pais:"France",npubs:1,nbec:1},
+    {journal:"Revista de Filosofia (Chile)",publisher:"Universidad de Chile",cuartil:"Q4",sjr:102,pais:"Chile",npubs:1,nbec:1},
+  ],
+  instituciones:[
+    {u:"Universidad De Chile",p:"Chile",qs:"245=",n:11},
+    {u:"Pontificia Universidad Catolica De Chile",p:"Chile",qs:null,n:10},
+    {u:"Universidad Tecnica Federico Santa Maria",p:"Chile",qs:null,n:5},
+    {u:"Universidad De Valparaiso",p:"Chile",qs:null,n:5},
+    {u:"Universidad De Concepcion",p:"Chile",qs:"336=",n:2},
+    {u:"University College London",p:"Reino Unido De Gb E Irlanda Del Norte",qs:null,n:2},
+    {u:"Universidad Adolfo Ibanez",p:"Chile",qs:"701+",n:2},
+    {u:"University Of Melbourne",p:"Australia",qs:null,n:2},
+    {u:"The State University Of New York At Stony Brook",p:"Estados Unidos",qs:null,n:1},
+    {u:"University Of Oxford",p:"Reino Unido De Gb E Irlanda Del Norte",qs:"126",n:1},
+  ]
+};
+
+// ── HERO CANVAS ───────────────────────────────────────────────────────────────
+(function(){
+  const canvas=document.getElementById('hero-canvas');
+  const ctx=canvas.getContext('2d');
+  let W,H,pts=[];
+  function resize(){
+    W=canvas.width=canvas.offsetWidth;
+    H=canvas.height=canvas.offsetHeight;
+    pts=Array.from({length:60},()=>({
+      x:Math.random()*W,y:Math.random()*H,
+      vx:(Math.random()-.5)*0.35,vy:(Math.random()-.5)*0.35,
+      r:Math.random()*2.5+1,
+      c:Math.random()<0.5?'255,77,109':'255,209,102'
+    }));
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    pts.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W)p.vx*=-1;
+      if(p.y<0||p.y>H)p.vy*=-1;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(${p.c},0.6)`;ctx.fill();
+    });
+    pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
+      const d=Math.hypot(a.x-b.x,a.y-b.y);
+      if(d<100){
+        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(255,77,109,${0.35*(1-d/100)})`;
+        ctx.lineWidth=0.8;ctx.stroke();
+      }
+    }));
+    requestAnimationFrame(draw);
+  }
+  resize();draw();
+  window.addEventListener('resize',resize);
+})();
+
+// ── SCROLL FADE ───────────────────────────────────────────────────────────────
+const observer=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:0.1});
+document.querySelectorAll('.fade-in').forEach(el=>observer.observe(el));
+
+// ── PUBLICACIONES ─────────────────────────────────────────────────────────────
+let currentFilter='all';
+let pubPage=0;
+const PUB_PAGE_SIZE=10;
+
+function qClass(q){return q==='Q1'?'q1':q==='Q2'?'q2':q==='Q3'?'q3':q==='Q4'?'q4':'qna';}
+
+function buildPubCard(p){
+  const b=BECARIOS_MAP[p.autor]||null;
+  const el=document.createElement('div');
+  el.className='pub-card';
+  el.innerHTML=`
+    <div class="pub-main">
+      <div class="pub-citas-bubble">
+        <span class="pub-citas-num">${p.citas||0}</span>
+        <span class="pub-citas-lbl">citas</span>
+      </div>
+      <div class="pub-body">
+        <div class="pub-title">${p.title}</div>
+        <div class="pub-meta">
+          <span class="pub-year-lbl">${p.year||'—'}</span>
+          <span class="pub-badge ${qClass(p.cuartil)}">${p.cuartil||'N/D'}</span>
+          ${p.primer_autor?'<span class="pub-first-badge">✦ Primer/a autor/a</span>':''}
+          ${p.doi?`<a class="pub-doi-link" href="https://doi.org/${p.doi}" target="_blank" onclick="event.stopPropagation()">🔗 DOI</a>`:''}
+        </div>
+        ${p.journal?`<div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">${p.journal}</div>`:''}
+      </div>
+    </div>
+    <div class="pub-becario-expand">
+      ${b?`<div class="becario-chip">
+        <span class="bc-name">${p.autor}</span>
+        <span class="bc-tag">${b.genero}</span>
+        <span class="bc-tag">GSE: ${b.gse}</span>
+        <span class="bc-tag">🌍 ${b.pais}</span>
+        ${b.afil?`<span class="bc-tag">🏛 ${b.afil}</span>`:''}
+        <span class="bc-tag">📄 ${b.scopus} pubs Scopus</span>
+        <span class="bc-tag">✦ ${b.pubs} en este tópico</span>
+      </div>`:`<div class="becario-chip"><span class="bc-name">${p.autor||'Becario/a'}</span></div>`}
+    </div>
+  `;
+  el.addEventListener('click',function(e){
+    if(e.target.tagName==='A')return;
+    this.classList.toggle('open');
+  });
+  return el;
+}
+
+function getFiltered(){
+  const search=document.getElementById('pub-search').value.toLowerCase();
+  return PUBLICATIONS.filter(p=>{
+    const matchFilter=currentFilter==='all'||(currentFilter==='first'&&p.primer_autor)||p.cuartil===currentFilter;
+    const matchSearch=!search||p.title.toLowerCase().includes(search)||(p.journal&&p.journal.toLowerCase().includes(search))||(p.autor&&p.autor.toLowerCase().includes(search));
+    return matchFilter&&matchSearch;
+  });
+}
+
+function renderPubs(){
+  const filtered=getFiltered();
+  const totalPages=Math.ceil(filtered.length/PUB_PAGE_SIZE)||1;
+  if(pubPage>=totalPages)pubPage=0;
+
+  const pageData=filtered.slice(pubPage*PUB_PAGE_SIZE, pubPage*PUB_PAGE_SIZE+PUB_PAGE_SIZE);
+  const container=document.getElementById('pub-list');
+  container.innerHTML='';
+  pageData.forEach(p=>container.appendChild(buildPubCard(p)));
+
+  const from=filtered.length===0?0:pubPage*PUB_PAGE_SIZE+1;
+  const to=Math.min(pubPage*PUB_PAGE_SIZE+PUB_PAGE_SIZE, filtered.length);
+  document.getElementById('pub-count').textContent=`${filtered.length} publicación${filtered.length!==1?'es':''}`;
+
+  const pag=document.getElementById('pub-pagination');
+  if(totalPages<=1){pag.innerHTML='';return;}
+  pag.innerHTML=`
+    <button onclick="changePubPage(-1)" ${pubPage===0?'disabled':''}>‹ Anterior</button>
+    <span class="pag-info">${from}–${to} de ${filtered.length}</span>
+    <button onclick="changePubPage(1)" ${pubPage>=totalPages-1?'disabled':''}>Siguiente ›</button>
+  `;
+}
+
+function changePubPage(dir){
+  pubPage+=dir;
+  renderPubs();
+  document.getElementById('publicaciones').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function filterPubs(){pubPage=0;renderPubs();}
+function setFilter(f,btn){
+  currentFilter=f;
+  pubPage=0;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderPubs();
+}
+renderPubs();
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────────
+const tooltip=document.getElementById('tooltip');
+function showTip(html,event){
+  tooltip.innerHTML=html;tooltip.style.opacity=1;
+  tooltip.style.left=(event.clientX+16)+'px';tooltip.style.top=(event.clientY-12)+'px';
+}
+function moveTip(event){tooltip.style.left=(event.clientX+16)+'px';tooltip.style.top=(event.clientY-12)+'px';}
+function hideTip(){tooltip.style.opacity=0;}
+
+// ── TIMELINE ─────────────────────────────────────────────────────────────────
+(function(){
+  const svg=d3.select('#timeline-svg');
+  const W=svg.node().getBoundingClientRect().width||900;
+  const H=240,M={top:24,right:24,bottom:50,left:50};
+  const w=W-M.left-M.right,h=H-M.top-M.bottom;
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+  const periods=['before','during','after'];
+  const labels={before:'Antes de la beca',during:'Durante la beca',after:'Después de la beca'};
+  const generos=['Hombre','Mujer'];
+  const colorMap={Hombre:'#FF4D6D',Mujer:'#FF8FA3'};
+  const data=periods.map(p=>{
+    const row={period:p};
+    generos.forEach(gn=>{const d=DATA.temporal.find(t=>t.period===p&&t.genero===gn);row[gn]=d?d.n:0;});
+    return row;
+  });
+  const x0=d3.scaleBand().domain(periods).range([0,w]).padding(0.4);
+  const x1=d3.scaleBand().domain(generos).range([0,x0.bandwidth()]).padding(0.12);
+  const y=d3.scaleLinear().domain([0,55]).range([h,0]);
+  g.append('g').attr('transform',`translate(0,${h})`)
+    .call(d3.axisBottom(x0).tickFormat(p=>labels[p]))
+    .selectAll('text').style('fill','rgba(255,241,230,0.6)').style('font-size','12px');
+  g.append('g').call(d3.axisLeft(y).ticks(5))
+    .selectAll('text').style('fill','rgba(255,241,230,0.5)').style('font-size','10px');
+  g.selectAll('.domain,.tick line').style('stroke','rgba(255,255,255,0.08)');
+  const grps=g.selectAll('.bg').data(data).enter().append('g').attr('transform',d=>`translate(${x0(d.period)},0)`);
+  grps.selectAll('rect').data(d=>generos.map(gn=>({gn,v:d[gn]}))).enter().append('rect')
+    .attr('x',d=>x1(d.gn)).attr('width',x1.bandwidth())
+    .attr('y',h).attr('height',0).attr('rx',6)
+    .attr('fill',d=>colorMap[d.gn])
+    .transition().duration(900).delay((_,i)=>i*100)
+    .attr('y',d=>y(d.v)).attr('height',d=>h-y(d.v));
+  grps.selectAll('.vl').data(d=>generos.map(gn=>({gn,v:d[gn]}))).enter().append('text')
+    .attr('x',d=>x1(d.gn)+x1.bandwidth()/2).attr('y',d=>y(d.v)-8)
+    .attr('text-anchor','middle').attr('fill','rgba(255,241,230,0.8)').attr('font-size','12px').attr('font-weight','600')
+    .text(d=>d.v>0?d.v:'');
+  const leg=g.append('g').attr('transform',`translate(${w-100},0)`);
+  generos.forEach((gn,i)=>{
+    leg.append('rect').attr('x',0).attr('y',i*22).attr('width',12).attr('height',12).attr('fill',colorMap[gn]).attr('rx',3);
+    leg.append('text').attr('x',18).attr('y',i*22+10).attr('fill','rgba(255,241,230,0.7)').attr('font-size','11px').text(gn);
+  });
+})();
+
+// ── INTERSECCIONAL ────────────────────────────────────────────────────────────
+(function(){
+  const svg=d3.select('#intersec-svg');
+  const W=svg.node().getBoundingClientRect().width||900;
+  const H=360,M={top:30,right:20,bottom:50,left:140};
+  const w=W-M.left-M.right,h=H-M.top-M.bottom;
+  svg.attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+  const gseOrder=['Bajo','Medio','Medio alto','Alto','sin información'];
+  const colorMap={Hombre:'#FF4D6D',Mujer:'#FF8FA3'};
+  const r=d3.scaleSqrt().domain([0,10]).range([10,46]);
+  const y=d3.scaleBand().domain(gseOrder).range([0,h]).padding(0.5);
+  const x=d3.scaleBand().domain(['Hombre','Mujer']).range([0,w]).padding(0.55);
+  g.append('g').call(d3.axisLeft(y)).selectAll('text').style('fill','rgba(255,241,230,0.7)').style('font-size','12px');
+  g.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(x)).selectAll('text').style('fill','rgba(255,241,230,0.7)').style('font-size','13px');
+  g.selectAll('.domain,.tick line').style('stroke','rgba(255,255,255,0.07)');
+  const filteredData=DATA.interseccional.filter(d=>gseOrder.includes(d.gse));
+  g.selectAll('circle').data(filteredData).enter().append('circle')
+    .attr('cx',d=>x(d.genero)+x.bandwidth()/2)
+    .attr('cy',d=>(y(d.gse)||0)+y.bandwidth()/2)
+    .attr('r',0).attr('fill',d=>colorMap[d.genero]).attr('opacity',0.75)
+    .attr('stroke',d=>colorMap[d.genero]).attr('stroke-width',2).attr('stroke-opacity',0.4)
+    .transition().duration(800).delay((_,i)=>i*80).attr('r',d=>r(d.n_becarios));
+  g.selectAll('.bnum').data(filteredData).enter().append('text')
+    .attr('x',d=>x(d.genero)+x.bandwidth()/2)
+    .attr('y',d=>(y(d.gse)||0)+y.bandwidth()/2+5)
+    .attr('text-anchor','middle').attr('fill','#fff').attr('font-size','13px').attr('font-weight','700').attr('pointer-events','none')
+    .text(d=>d.n_becarios);
+  g.selectAll('circle').on('mouseover',function(event,d){
+    showTip(`<b>${d.gse} · ${d.genero}</b><br/>👥 ${d.n_becarios} investigadores/as<br/>📊 Mediana pubs: ${d.mediana_pubs}`,event);
+    d3.select(this).attr('opacity',1).attr('stroke-width',3);
+  }).on('mousemove',moveTip).on('mouseout',function(){hideTip();d3.select(this).attr('opacity',0.75).attr('stroke-width',2);});
+})();
+
+// ── CUARTILES ─────────────────────────────────────────────────────────────────
+(function(){
+  const svg=d3.select('#cuartiles-svg');
+  const W=svg.node().getBoundingClientRect().width||900;
+  const H=300,M={top:24,right:120,bottom:50,left:60};
+  const w=W-M.left-M.right,h=H-M.top-M.bottom;
+  svg.attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+  const qColors={'Q1':'#FF4D6D','Q2':'#FFD166','Q3':'#FF8FA3','Q4':'#888','-':'#333'};
+  const generos=['Hombre','Mujer'];
+  const cuartiles=['Q1','Q2','Q3','Q4','-'];
+  const prep=generos.map(gn=>{const row={gn};cuartiles.forEach(q=>{const d=DATA.cuartiles_genero.find(x=>x.genero===gn&&x.cuartil===q);row[q]=d?d.n:0;});return row;});
+  const stacked=d3.stack().keys(cuartiles)(prep);
+  const total=Math.max(...prep.map(r=>cuartiles.reduce((s,q)=>s+r[q],0)));
+  const x=d3.scaleBand().domain(generos).range([0,w]).padding(0.5);
+  const y=d3.scaleLinear().domain([0,total*1.1]).range([h,0]);
+  g.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(x)).selectAll('text').style('fill','rgba(255,241,230,0.7)').style('font-size','13px');
+  g.append('g').call(d3.axisLeft(y).ticks(5)).selectAll('text').style('fill','rgba(255,241,230,0.5)').style('font-size','10px');
+  g.selectAll('.domain,.tick line').style('stroke','rgba(255,255,255,0.07)');
+  stacked.forEach(layer=>{
+    g.selectAll(null).data(layer).enter().append('rect')
+      .attr('x',d=>x(d.data.gn)).attr('width',x.bandwidth())
+      .attr('y',h).attr('height',0).attr('rx',4)
+      .attr('fill',qColors[layer.key])
+      .transition().duration(900).delay((_,i)=>i*150)
+      .attr('y',d=>y(d[1])).attr('height',d=>y(d[0])-y(d[1]));
+  });
+  const leg=g.append('g').attr('transform',`translate(${w+14},0)`);
+  ['Q1','Q2','Q3','Q4','-'].forEach((q,i)=>{
+    leg.append('rect').attr('x',0).attr('y',i*24).attr('width',14).attr('height',14).attr('fill',qColors[q]).attr('rx',3);
+    leg.append('text').attr('x',22).attr('y',i*24+11).attr('fill','rgba(255,241,230,0.7)').attr('font-size','12px').text(q==='-'?'N/D':q);
+  });
+})();
+
+// ── FIELDS ────────────────────────────────────────────────────────────────────
+(function(){
+  const svg=d3.select('#fields-svg');
+  const W=svg.node().getBoundingClientRect().width||900;
+  const H=400,M={top:16,right:70,bottom:16,left:210};
+  const w=W-M.left-M.right,h=H-M.top-M.bottom;
+  svg.attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+  const colorScale=d3.scaleSequential(t=>d3.interpolate('#3D1A24','#FF4D6D')(t)).domain([0,49]);
+  const x=d3.scaleLinear().domain([0,52]).range([0,w]);
+  const y=d3.scaleBand().domain(DATA.fields.map(d=>d.field)).range([0,h]).padding(0.25);
+  g.append('g').call(d3.axisLeft(y)).selectAll('text').style('fill','rgba(255,241,230,0.7)').style('font-size','11px');
+  g.selectAll('.domain,.tick line').style('stroke','rgba(255,255,255,0.06)');
+  g.selectAll('rect').data(DATA.fields).enter().append('rect')
+    .attr('y',d=>y(d.field)).attr('height',y.bandwidth())
+    .attr('x',0).attr('width',0).attr('rx',4)
+    .attr('fill',d=>colorScale(d.n_pubs))
+    .transition().duration(900).delay((_,i)=>i*50).attr('width',d=>x(d.n_pubs));
+  g.selectAll('.fl').data(DATA.fields).enter().append('text')
+    .attr('x',d=>x(d.n_pubs)+8).attr('y',d=>(y(d.field)||0)+y.bandwidth()/2+4)
+    .attr('fill','rgba(255,241,230,0.75)').attr('font-size','11px').text(d=>d.n_pubs);
+})();
+
+// ── BECARIOS LOLLIPOP ─────────────────────────────────────────────────────────
+(function(){
+  const top20=DATA.becarios.slice(0,20);
+  const svg=d3.select('#becarios-svg');
+  const W=svg.node().getBoundingClientRect().width||900;
+  const M={top:10,right:90,bottom:10,left:270};
+  const H=top20.length*27+M.top+M.bottom;
+  const w=W-M.left-M.right,h=H-M.top-M.bottom;
+  svg.attr('height',H);
+  const g=svg.append('g').attr('transform',`translate(${M.left},${M.top})`);
+  const colorMap={Hombre:'#FF4D6D',Mujer:'#FF8FA3'};
+  const x=d3.scaleLinear().domain([0,12]).range([0,w]);
+  const y=d3.scaleBand().domain(top20.map(d=>d.nombre)).range([0,h]).padding(0.3);
+  g.append('g').call(d3.axisLeft(y).tickFormat(d=>{const p=d.split(' ');return p.slice(0,2).join(' ');}))
+    .selectAll('text').style('fill','rgba(255,241,230,0.75)').style('font-size','10px');
+  g.selectAll('.domain,.tick line').style('stroke','rgba(255,255,255,0.06)');
+  g.selectAll('.stem').data(top20).enter().append('line')
+    .attr('x1',0).attr('x2',0)
+    .attr('y1',d=>(y(d.nombre)||0)+y.bandwidth()/2)
+    .attr('y2',d=>(y(d.nombre)||0)+y.bandwidth()/2)
+    .attr('stroke',d=>colorMap[d.genero]).attr('stroke-width',2).attr('opacity',0.45)
+    .transition().duration(700).delay((_,i)=>i*35).attr('x2',d=>x(d.pubs));
+  g.selectAll('.lolly').data(top20).enter().append('circle')
+    .attr('cy',d=>(y(d.nombre)||0)+y.bandwidth()/2).attr('cx',0).attr('r',8)
+    .attr('fill',d=>colorMap[d.genero]).attr('stroke','rgba(26,26,46,0.6)').attr('stroke-width',2)
+    .transition().duration(700).delay((_,i)=>i*35).attr('cx',d=>x(d.pubs));
+  g.selectAll('.lnum').data(top20).enter().append('text')
+    .attr('y',d=>(y(d.nombre)||0)+y.bandwidth()/2+4)
+    .attr('x',d=>x(d.pubs)+14)
+    .attr('fill','rgba(255,241,230,0.7)').attr('font-size','10px')
+    .text(d=>`${d.pubs} pub${d.pubs>1?'s':''}`);
+  g.selectAll('.lolly').on('mouseover',function(event,d){
+    showTip(`<b>${d.nombre}</b><br/>GSE: ${d.gse}<br/>🌍 ${d.pais}<br/>📄 ${d.scopus} pubs en Scopus<br/>✦ ${d.pubs} en este tópico${d.afil?`<br/>🏛 ${d.afil}`:''}`,event);
+    d3.select(this).attr('r',11);
+  }).on('mousemove',moveTip).on('mouseout',function(){hideTip();d3.select(this).attr('r',8);});
+})();
+
+// ── JOURNALS ─────────────────────────────────────────────────────────────────
+(function(){
+  const container=document.getElementById('journal-grid');
+  const qClass=q=>q==='Q1'?'q1':q==='Q2'?'q2':q==='Q3'?'q3':q==='Q4'?'q4':'qna';
+  DATA.journals.forEach(j=>{
+    const el=document.createElement('div');
+    el.className='journal-card';
+    el.innerHTML=`
+      <div class="jname">${j.journal}</div>
+      <div class="jpub">${j.publisher||'—'} · ${j.pais||'—'}</div>
+      <div class="jmeta">
+        <span class="pub-badge ${qClass(j.cuartil)}">${j.cuartil||'N/D'}</span>
+        ${j.sjr?`<span class="pub-badge qna">SJR ${j.sjr}</span>`:''}
+        <span class="pub-badge qna">📄 ${j.npubs}</span>
+        <span class="pub-badge qna">👤 ${j.nbec}</span>
+      </div>
+    `;
+    container.appendChild(el);
+  });
+})();
+
+// ── INSTITUCIONES ─────────────────────────────────────────────────────────────
+(function(){
+  const container=document.getElementById('inst-list');
+  const max=Math.max(...DATA.instituciones.map(d=>d.n));
+  DATA.instituciones.forEach((inst,i)=>{
+    const el=document.createElement('div');
+    el.className='inst-row';
+    el.innerHTML=`
+      <div class="inst-num">${i+1}</div>
+      <div style="flex:1">
+        <div class="inst-name">${inst.u}</div>
+        <div class="inst-country">${inst.p}${inst.qs?` · QS ${inst.qs}`:''}</div>
+      </div>
+      <div class="inst-bar-wrap"><div class="inst-bar" style="width:${(inst.n/max)*100}%"></div></div>
+      <div class="inst-n">${inst.n}</div>
+    `;
+    container.appendChild(el);
+  });
+})();
+
+// ── COMENTARIOS ───────────────────────────────────────────────────────────────
+// Para activar el backend Google Sheets:
+// 1. Crea un Google Sheet nuevo
+// 2. Extensiones > Apps Script > pegar:
+//    function doPost(e) {
+//      var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+//      var data = JSON.parse(e.postData.contents);
+//      sheet.appendRow([new Date(), data.nombre, data.mensaje, "Tópico 155"]);
+//      return ContentService.createTextOutput(JSON.stringify({status:"ok"})).setMimeType(ContentService.MimeType.JSON);
+//    }
+// 3. Implementar > Nueva implementación > Web App > Acceso: Cualquiera
+// 4. Copiar URL y reemplazar abajo:
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-jJ1FaxpPwXHNJ4105sgijmLgbrp-31CFOcqzW0GNWmappx9gJX7I_OCDhtpjJlaYQQ/exec";
+
+async function enviarComentario(){
+  const nombre=document.getElementById('input-nombre').value.trim()||'Anónimo';
+  const mensaje=document.getElementById('input-comentario').value.trim();
+  const status=document.getElementById('send-status');
+  if(!mensaje){status.style.color='var(--rose)';status.textContent='⚠ Escribe algo primero 💬';return;}
+  status.style.color='var(--yellow)';status.textContent='Enviando tu mensaje… ✨';
+  try {
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify({nombre,mensaje})});
+    status.style.color='#88DDAA';status.textContent='¡Mensaje enviado! Gracias por escribir 💌';
+    document.getElementById('input-comentario').value='';
+    document.getElementById('input-nombre').value='';
+  } catch(err) {
+    status.style.color='var(--rose)';status.textContent='No se pudo enviar. Revisa la URL del script.';
+  }
+}
+</script>
+</body>
+</html>
